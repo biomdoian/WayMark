@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
+// Import the new map component
+import WayMarkMap from './components/WayMarkMap'
 
 function App() {
   const [trips, setTrips] = useState([])
@@ -37,6 +39,13 @@ function App() {
             <div key={trip.id} className="trip-card">
               <h2>{trip.title}</h2>
               <p>{trip.description}</p>
+              
+              {/* Render the Map here if waymarks exist */}
+              {trip.waymarks && trip.waymarks.length > 0 ? (
+                <WayMarkMap waymarks={trip.waymarks} />
+              ) : (
+                <p>No map data available for this trip.</p>
+              )}
               
               <div className="waymarks-preview">
                 <h3>WayMarks:</h3>
