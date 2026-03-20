@@ -24,8 +24,8 @@ function App() {
   return (
     <div className="min-h-screen bg-waymark-black text-white selection:bg-waymark-amber font-sans">
       
-      {/* NAVIGATION BAR - From your mockup */}
-      <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-waymark-black/50 backdrop-blur-md">
+      {/* NAVIGATION BAR */}
+      <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-waymark-black/50 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-2">
           <span className="text-waymark-amber text-2xl">📍</span>
           <span className="font-bold text-xl tracking-tight">WayMark</span>
@@ -41,13 +41,25 @@ function App() {
         </button>
       </nav>
 
-      {/* HERO SECTION */}
-      <header className="relative h-screen flex flex-col items-start justify-center px-8 md:px-24 overflow-hidden">
-        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1518005020453-1cb343e0afe0?q=80')] bg-cover bg-center opacity-40"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-waymark-black via-waymark-black/80 to-transparent z-10"></div>
+      {/* HERO SECTION - Updated with Kenyan Scenery & Animated Road */}
+      <header className="relative h-screen flex flex-col items-start justify-center px-8 md:px-24 overflow-hidden bg-waymark-black">
+        {/* Background: Kenyan Escarpment/Road Scenery */}
+        <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1627589139265-27a9889758e5?q=80')] bg-cover bg-center opacity-30"></div>
         
-        {/* The Animated Road Line */}
-        <div className="absolute bottom-0 left-0 w-full h-1 road-animation z-10"></div>
+        {/* The Horizon Sun Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-waymark-amber/10 blur-[120px] rounded-full z-10"></div>
+
+        {/* The Animated Road Perspective */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[40vh] z-10 overflow-hidden" 
+             style={{ perspective: '500px' }}>
+          <div className="absolute inset-0 road-animation"
+               style={{ 
+                 transform: 'rotateX(60deg)', 
+                 transformOrigin: 'bottom',
+                 background: 'linear-gradient(to bottom, transparent, rgba(245, 158, 11, 0.05)), repeating-linear-gradient(0deg, transparent, transparent 20px, #F59E0B 20px, #F59E0B 40px)' 
+               }}>
+          </div>
+        </div>
 
         <div className="relative z-20 max-w-4xl">
           <p className="text-waymark-amber font-black uppercase tracking-[0.3em] text-sm mb-4 flex items-center gap-2">
@@ -58,20 +70,20 @@ function App() {
             <span className="italic text-waymark-amber">that shaped you</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-xl mb-10 leading-relaxed">
-            Drop interactive waypoints on any road. Attach POV driving clips, photos, and the stories behind each mile. Your journeys, mapped and remembered.
+            Documenting the Kenyan landscape, one mile at a time. From the Rift Valley switchbacks to the golden hour in Nakuru.
           </p>
           <div className="flex gap-6">
-            <button className="bg-waymark-amber text-black font-bold px-10 py-4 rounded-lg flex items-center gap-3 hover:scale-105 transition-transform">
+            <button className="bg-waymark-amber text-black font-bold px-10 py-4 rounded-lg flex items-center gap-3 hover:scale-105 transition-transform shadow-lg shadow-waymark-amber/20">
               <span>📍</span> Start Exploring
             </button>
-            <button className="flex items-center gap-3 font-bold text-white hover:text-waymark-amber transition-colors">
-              <span className="border border-white/20 p-2 rounded-full">▶</span> See How It Works
+            <button className="flex items-center gap-3 font-bold text-white hover:text-waymark-amber transition-colors group">
+              <span className="border border-white/20 p-2 rounded-full group-hover:border-waymark-amber transition-colors">▶</span> See How It Works
             </button>
           </div>
         </div>
       </header>
 
-      {/* HOW IT WORKS GRID - From your mockup */}
+      {/* HOW IT WORKS GRID */}
       <section className="py-24 px-8 md:px-24 bg-[#0a0a0a]">
         <p className="text-waymark-amber text-xs font-bold uppercase tracking-widest mb-4">How it works</p>
         <h2 className="text-5xl font-serif mb-12 max-w-2xl leading-tight">Every mile has a memory. WayMark helps you keep it.</h2>
@@ -94,7 +106,7 @@ function App() {
         </div>
       </section>
 
-      {/* JOURNEYS SECTION (The Dynamic Part) */}
+      {/* JOURNEYS SECTION */}
       <main className="py-24 px-8 md:px-24">
         <div className="flex justify-between items-end mb-12">
           <div>
@@ -131,11 +143,11 @@ function App() {
         )}
       </main>
 
-      {/* PROJECT TECH SECTION - From your mockup */}
+      {/* PROJECT TECH SECTION */}
       <section className="py-24 px-8 md:px-24 bg-waymark-gray/10 flex flex-col md:flex-row gap-16 items-center">
-        <div className="w-full md:w-1/2 h-[400px] bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-waymark-amber text-6xl font-serif italic relative">
+        <div className="w-full md:w-1/2 h-[400px] bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-waymark-amber text-6xl font-serif italic relative overflow-hidden">
           W
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80')] bg-cover opacity-20 rounded-3xl"></div>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80')] bg-cover opacity-20"></div>
         </div>
         <div className="w-full md:w-1/2">
           <p className="text-waymark-amber text-xs font-bold uppercase tracking-widest mb-4">The Project</p>
@@ -144,7 +156,7 @@ function App() {
           <div className="flex flex-wrap gap-4">
             {['React', 'Flask', 'PostgreSQL', 'Tailwind CSS'].map(tech => (
               <span key={tech} className="bg-white/5 border border-white/10 px-4 py-2 rounded-lg text-sm text-gray-300">
-                {tech === 'React' ? '🌐' : tech === 'Flask' ? '🔋' : tech === 'PostgreSQL' ? '🗄️' : '🎨'} {tech}
+                 {tech}
               </span>
             ))}
           </div>
