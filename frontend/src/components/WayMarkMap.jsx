@@ -1,8 +1,8 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Importing default icons to fix the "missing marker" bug in React-Leaflet
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
@@ -14,17 +14,24 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-function WayMarkMap({ waymarks }) {
-  // Default center (Nairobi) if no waymarks exist
-  const defaultCenter = [-1.286389, 36.817223];
+// NEW: This component tells the map to fly to the new coordinates
+function RecenterMap({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center);
+  }, [center, map]);
+  return null;
+}
+
+function WayMarkMap({ waymarks = [] }) {
+  const defaultCenter = [-1.286389, 36.817223]; // Nairobi
   
-  // Use the first waymark's coordinates as center if available
   const center = waymarks.length > 0 
     ? [waymarks[0].latitude, waymarks[0].longitude] 
     : defaultCenter;
 
   return (
-    <div className="map-wrapper" style={{ height: "400px", width: "100%", margin: "20px 0", borderRadius: "12px", overflow: "hidden" }}>
+    <div className="map-wrapper" style={{ height: "100%", width: "100%", borderRadius: "12px", overflow: "hidden" }}>
       <MapContainer center={center} zoom={13} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -34,13 +41,15 @@ function WayMarkMap({ waymarks }) {
           <Marker key={wm.id} position={[wm.latitude, wm.longitude]}>
             <Popup>
               <div className="popup-content">
-                <strong>{wm.label}</strong>
+                <strong className="text-waymark-amber">{wm.label}</strong>
                 <p>{wm.story}</p>
-                {wm.timestamp_in_video && <small>Timestamp: {wm.timestamp_in_video}s</small>}
+                {wm.timestamp_in_video && <small className="block mt-2 font-mono">🎬 POV: {wm.timestamp_in_video}s</small>}
               </div>
             </Popup>
           </Marker>
         ))}
+        {/* This triggers the move when data loads */}
+        <RecenterMap center={center} />
       </MapContainer>
     </div>
   );
