@@ -7,156 +7,136 @@ function App() {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [formData, setFormData] = useState({ label: '', story: '', timestamp: '' })
 
   useEffect(() => {
+    fetchTrips()
+  }, [])
+
+  const fetchTrips = () => {
     axios.get('http://127.0.0.1:5555/trips')
       .then(response => {
         setTrips(response.data)
         setLoading(false)
       })
       .catch(err => {
-        console.error("Error fetching data: ", err)
-        setError("Could not connect to the WayMark API. Ensure Flask is running.")
+        setError("Could not connect to the WayMark API.")
         setLoading(false)
       })
-  }, [])
+  }
+
+  const handleMapClick = (latlng) => {
+    setSelectedLocation(latlng)
+  }
+
+  // UPDATED: Now sends data to your Flask backend
+  const handleSaveWayMark = async (e) => {
+    e.preventDefault()
+    
+    const newWayMark = {
+      label: formData.label,
+      story: formData.story,
+      timestamp_in_video: parseInt(formData.timestamp) || 0,
+      latitude: selectedLocation.lat,
+      longitude: selectedLocation.lng,
+      trip_id: trips[0]?.id // Connects to your first active trip
+    }
+
+    try {
+      // Sending POST request to your Flask backend
+      await axios.post('http://127.0.0.1:5555/waypoints', newWayMark)
+      
+      // Refresh data so the new pin stays on the map
+      fetchTrips();
+      
+      // Reset state
+      setSelectedLocation(null)
+      setFormData({ label: '', story: '', timestamp: '' })
+    } catch (err) {
+      console.error("Error saving waymark:", err)
+      alert("Failed to save waypoint. Is the Flask server running?")
+    }
+  }
 
   return (
     <div className="min-h-screen bg-waymark-black text-white selection:bg-waymark-amber font-sans">
-      
-      {/* NAVIGATION BAR - From your mockup */}
       <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-waymark-black/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <span className="text-waymark-amber text-2xl">📍</span>
-          <span className="font-bold text-xl tracking-tight">WayMark</span>
+          <span className="font-bold text-xl tracking-tight uppercase">WayMark</span>
         </div>
         <div className="hidden md:flex gap-8 text-sm font-medium text-gray-400">
           <a href="#" className="hover:text-white transition-colors">Home</a>
-          <a href="#" className="hover:text-white transition-colors">Features</a>
           <a href="#" className="hover:text-white transition-colors">Journeys</a>
-          <a href="#" className="hover:text-white transition-colors">About</a>
         </div>
         <button className="bg-waymark-amber text-black text-sm font-bold px-6 py-2 rounded-lg hover:brightness-110 transition-all">
           Explore Map
         </button>
       </nav>
 
-      {/* HERO SECTION */}
-      <header className="relative h-screen flex flex-col items-start justify-center px-8 md:px-24 overflow-hidden">
+      <header className="relative h-[80vh] flex flex-col items-start justify-center px-8 md:px-24 overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1518005020453-1cb343e0afe0?q=80')] bg-cover bg-center opacity-40"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-waymark-black via-waymark-black/80 to-transparent z-10"></div>
-        
-        {/* The Animated Road Line */}
-        <div className="absolute bottom-0 left-0 w-full h-1 road-animation z-10"></div>
-
         <div className="relative z-20 max-w-4xl">
-          <p className="text-waymark-amber font-black uppercase tracking-[0.3em] text-sm mb-4 flex items-center gap-2">
-            <span className="text-lg">📍</span> Every road tells a story
-          </p>
-          <h1 className="text-7xl md:text-9xl font-serif mb-6 leading-tight">
-            Mark the roads <br />
-            <span className="italic text-waymark-amber">that shaped you</span>
-          </h1>
-          <p className="text-xl text-gray-400 max-w-xl mb-10 leading-relaxed">
-            Drop interactive waypoints on any road. Attach POV driving clips, photos, and the stories behind each mile. Your journeys, mapped and remembered.
-          </p>
-          <div className="flex gap-6">
-            <button className="bg-waymark-amber text-black font-bold px-10 py-4 rounded-lg flex items-center gap-3 hover:scale-105 transition-transform">
-              <span>📍</span> Start Exploring
-            </button>
-            <button className="flex items-center gap-3 font-bold text-white hover:text-waymark-amber transition-colors">
-              <span className="border border-white/20 p-2 rounded-full">▶</span> See How It Works
-            </button>
-          </div>
+          <p className="text-waymark-amber font-black uppercase tracking-[0.3em] text-xs mb-4">📍 Kenya POV Archive</p>
+          <h1 className="text-6xl md:text-8xl font-serif mb-6 leading-tight">Mark the roads <br /><span className="italic text-waymark-amber">that shaped you</span></h1>
         </div>
       </header>
 
-      {/* HOW IT WORKS GRID - From your mockup */}
-      <section className="py-24 px-8 md:px-24 bg-[#0a0a0a]">
-        <p className="text-waymark-amber text-xs font-bold uppercase tracking-widest mb-4">How it works</p>
-        <h2 className="text-5xl font-serif mb-12 max-w-2xl leading-tight">Every mile has a memory. WayMark helps you keep it.</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { icon: '📍', title: 'Drop WayMarks', desc: 'Pin any location on the interactive map.' },
-            { icon: '📹', title: 'Attach POV Clips', desc: 'Upload point-of-view driving footage and photos.' },
-            { icon: '📖', title: 'Write Your Narrative', desc: 'Journal the moments that mattered—the roadside chai.' },
-            { icon: '🛡️', title: 'Your Road Chronicles', desc: 'Secure, personal accounts to manage your journeys.' }
-          ].map((item, i) => (
-            <div key={i} className="p-8 bg-waymark-gray/20 border border-white/5 rounded-2xl hover:border-waymark-amber/30 transition-colors group">
-              <div className="text-3xl mb-6 bg-waymark-amber/10 w-12 h-12 flex items-center justify-center rounded-lg group-hover:bg-waymark-amber/20 transition-colors">
-                {item.icon}
-              </div>
-              <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* JOURNEYS SECTION (The Dynamic Part) */}
       <main className="py-24 px-8 md:px-24">
         <div className="flex justify-between items-end mb-12">
           <div>
             <p className="text-waymark-amber text-xs font-bold uppercase tracking-widest mb-4">Road Chronicles</p>
-            <h2 className="text-5xl font-serif">Stories from the road</h2>
+            <h2 className="text-5xl font-serif">Active Journeys</h2>
           </div>
-          <button className="text-gray-400 hover:text-waymark-amber transition-colors flex items-center gap-2">
-            View all journeys <span>→</span>
-          </button>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-waymark-amber"></div></div>
-        ) : error ? (
-          <div className="bg-red-900/20 border border-red-500/50 p-6 rounded-xl text-red-400">{error}</div>
-        ) : (
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {trips.map(trip => (
-              <div key={trip.id} className="bg-waymark-gray/20 border border-white/5 rounded-3xl overflow-hidden hover:border-waymark-amber/50 transition-all group">
-                <div className="h-64 bg-black relative">
-                  {trip.waymarks?.length > 0 ? <WayMarkMap waymarks={trip.waymarks} /> : <div className="h-full flex items-center justify-center text-gray-700 italic">No Map Data</div>}
-                  <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs text-waymark-amber flex items-center gap-2">
-                    <span>📍</span> {trip.waymarks?.length || 0} WayMarks
-                  </div>
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="h-[500px] bg-waymark-gray/20 rounded-3xl overflow-hidden border border-white/5 relative">
+              <WayMarkMap 
+                waymarks={trips[0]?.waymarks || []} 
+                onMapClick={handleMapClick}
+                selectedLocation={selectedLocation}
+              />
+              
+              {selectedLocation && (
+                <div className="absolute top-4 right-4 z-[1000] w-72 bg-waymark-black/90 backdrop-blur-xl p-6 rounded-2xl border border-waymark-amber/30 shadow-2xl">
+                  <h3 className="text-waymark-amber font-bold mb-4 flex justify-between">New Waypoint <span>📍</span></h3>
+                  <form onSubmit={handleSaveWayMark} className="space-y-4">
+                    <input className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm focus:outline-none focus:border-waymark-amber text-white" placeholder="Location Name" value={formData.label} onChange={e => setFormData({...formData, label: e.target.value})} required />
+                    <textarea className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm h-20 focus:outline-none focus:border-waymark-amber text-white" placeholder="The story..." value={formData.story} onChange={e => setFormData({...formData, story: e.target.value})} />
+                    <input className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm focus:outline-none focus:border-waymark-amber text-white" placeholder="Video Timestamp (s)" type="number" value={formData.timestamp} onChange={e => setFormData({...formData, timestamp: e.target.value})} />
+                    <div className="flex gap-2">
+                      <button type="submit" className="flex-1 bg-waymark-amber text-black font-bold py-2 rounded-lg text-xs">Save Pin</button>
+                      <button type="button" onClick={() => setSelectedLocation(null)} className="flex-1 bg-white/5 py-2 rounded-lg text-xs">Cancel</button>
+                    </div>
+                  </form>
                 </div>
-                <div className="p-8">
-                  <p className="text-gray-500 text-xs uppercase tracking-tighter mb-2">Nairobi → Nakuru</p>
-                  <h3 className="text-2xl font-bold mb-4 group-hover:text-waymark-amber transition-colors">{trip.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed line-clamp-2">{trip.description}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {loading ? <div className="animate-pulse h-32 bg-white/5 rounded-3xl"></div> : trips.map(trip => (
+              <div key={trip.id} className="p-8 bg-waymark-gray/20 border border-white/5 rounded-3xl">
+                <h3 className="text-2xl font-bold mb-2">{trip.title}</h3>
+                <p className="text-gray-400 text-sm mb-4">{trip.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {trip.waymarks?.map(wm => (
+                    <span key={wm.id} className="text-[10px] bg-waymark-amber/10 text-waymark-amber border border-waymark-amber/20 px-2 py-1 rounded-full">{wm.label}</span>
+                  ))}
                 </div>
               </div>
             ))}
-          </section>
-        )}
+          </div>
+        </section>
       </main>
 
-      {/* PROJECT TECH SECTION - From your mockup */}
-      <section className="py-24 px-8 md:px-24 bg-waymark-gray/10 flex flex-col md:flex-row gap-16 items-center">
-        <div className="w-full md:w-1/2 h-[400px] bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center text-waymark-amber text-6xl font-serif italic relative">
-          W
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80')] bg-cover opacity-20 rounded-3xl"></div>
-        </div>
-        <div className="w-full md:w-1/2">
-          <p className="text-waymark-amber text-xs font-bold uppercase tracking-widest mb-4">The Project</p>
-          <h2 className="text-5xl font-serif mb-8 leading-tight">Built for drivers who remember roads, not just destinations</h2>
-          <p className="text-gray-400 mb-8 leading-relaxed">WayMark was born from the idea that the journey matters more than the arrival. It's for those who take the longer route because the scenery is better.</p>
-          <div className="flex flex-wrap gap-4">
-            {['React', 'Flask', 'PostgreSQL', 'Tailwind CSS'].map(tech => (
-              <span key={tech} className="bg-white/5 border border-white/10 px-4 py-2 rounded-lg text-sm text-gray-300">
-                {tech === 'React' ? '🌐' : tech === 'Flask' ? '🔋' : tech === 'PostgreSQL' ? '🗄️' : '🎨'} {tech}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-24 text-center border-t border-white/5">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <span className="text-waymark-amber text-2xl">📍</span>
-          <span className="font-bold text-xl tracking-tight">WayMark</span>
-        </div>
-        <p className="text-gray-500 text-sm">© 2026 Ian Biomdo. Made with ❤️ in Nairobi</p>
+      <footer className="py-12 text-center text-gray-600 border-t border-white/5">
+        <p>© 2026 Ian Biomdo // POV Driving Project</p>
       </footer>
     </div>
   )
