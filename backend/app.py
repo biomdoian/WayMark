@@ -17,26 +17,27 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
 def home():
     return jsonify({"message": "WayMark API is running!"})
 
-# --- AUTH ROUTES ---
+# --- USER & AUTH ROUTES ---
 
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
     try:
-        # Check if user already exists
         if User.query.filter_by(email=data.get('email')).first():
             return jsonify({"error": "User already exists"}), 400
             
         new_user = User(
             username=data.get('username') or data.get('full_name'),
-            email=data.get('email')
+            email=data.get('email'),
+            bio="Adventurer and WayMark storyteller." # Default bio
         )
-        # Assuming your User model handles password hashing
         new_user.password_hash = data.get('password') 
         
         db.session.add(new_user)
         db.session.commit()
-        return jsonify({"message": "User created successfully", "user_id": new_user.id}), 201
+        
+        # Return the full user object so the frontend can log them in immediately
+        return jsonify(new_user.to_dict()), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
@@ -46,11 +47,33 @@ def login():
     data = request.get_json()
     user = User.query.filter_by(email=data.get('email')).first()
     
-    # Simple check (Update this with your actual password verification logic)
     if user and user.password_hash == data.get('password'):
-        return jsonify({"message": "Login successful", "user_id": user.id}), 200
+        # Return full dictionary so frontend has ID, Username, Email, and Bio
+        return jsonify(user.to_dict()), 200
     
     return jsonify({"error": "Invalid email or password"}), 401
+
+@app.route('/users/<int:id>', methods=['PATCH'])
+def update_user(id):
+    user = User.query.get(id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    data = request.get_json()
+    
+    try:
+        if 'username' in data:
+            user.username = data['username']
+        if 'email' in data:
+            user.email = data['email']
+        if 'bio' in data:
+            user.bio = data['bio']
+            
+        db.session.commit()
+        return jsonify(user.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
 
 # --- CHRONICLE ROUTES ---
 
@@ -75,7 +98,7 @@ def get_chronicles():
                         "lng": wm.longitude
                     } for wm in trip.waymarks
                 ],
-                "author": {"name": "Ian Biomdo", "avatarUrl": ""},
+                "author": {"name": trip.user.username if trip.user else "Explorer", "avatarUrl": ""},
                 "publishedAt": "Mar 25, 2026"
             }
             result.append(trip_dict)
