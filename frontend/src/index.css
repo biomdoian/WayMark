@@ -1,58 +1,107 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
-@theme {
-  /* Direct color definitions for Tailwind v4 */
-  --color-waymark-black: #0F0F0F;
-  --color-waymark-amber: #F59E0B;
-  --color-waymark-gray: #1F2937;
-  --color-waymark-cyan: #22D3EE;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 6%;
+    --foreground: 40 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 40 20% 92%;
+
+    --popover: 220 18% 10%;
+    --popover-foreground: 40 20% 92%;
+
+    --primary: 35 70% 55%;
+    --primary-foreground: 220 20% 6%;
+
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 40 20% 85%;
+
+    --muted: 220 15% 14%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 35 70% 55%;
+    --accent-foreground: 220 20% 6%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 40 20% 92%;
+
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 35 70% 55%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --amber-glow: 35 90% 60%;
+    --midnight: 230 30% 8%;
+    --glass: 220 20% 12%;
+    --glass-border: 220 15% 22%;
+
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Space Grotesk', sans-serif;
+
+    --gradient-hero: linear-gradient(135deg, hsl(220 20% 6%) 0%, hsl(230 25% 12%) 50%, hsl(220 20% 6%) 100%);
+    --gradient-amber: linear-gradient(135deg, hsl(35 70% 55%) 0%, hsl(25 80% 50%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(220 20% 12% / 0.6) 0%, hsl(220 20% 8% / 0.4) 100%);
+
+    --shadow-amber: 0 0 40px hsl(35 70% 55% / 0.15);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
+    --shadow-elevated: 0 20px 60px hsl(0 0% 0% / 0.5);
+
+    --sidebar-background: 220 18% 8%;
+    --sidebar-foreground: 40 20% 85%;
+    --sidebar-primary: 35 70% 55%;
+    --sidebar-primary-foreground: 220 20% 6%;
+    --sidebar-accent: 220 15% 14%;
+    --sidebar-accent-foreground: 40 20% 85%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 35 70% 55%;
+  }
 }
 
-:root {
-  /* CSS Variables for standard elements */
-  --bg: #0F0F0F;
-  --waymark-amber: #F59E0B;
-  color-scheme: dark;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
 }
 
-body {
-  margin: 0;
-  background-color: var(--bg);
-  color: #ffffff;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
+@layer utilities {
+  .glass-panel {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--glass-border));
+  }
 
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+  .text-gradient-amber {
+    background: var(--gradient-amber);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #0F0F0F;
-}
-::-webkit-scrollbar-thumb {
-  background: #2e2e2e;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--waymark-amber);
-}
+  .glow-amber {
+    box-shadow: var(--shadow-amber);
+  }
 
-/* The Animated Road logic - Speed increased to 1s for driving feel */
-.road-animation {
-  background-size: 100% 80px; 
-  animation: moveRoad 1s linear infinite;
-}
+  .font-display {
+    font-family: var(--font-display);
+  }
 
-@keyframes moveRoad {
-  from { background-position: 0 0; }
-  to { background-position: 0 80px; }
+  .font-body {
+    font-family: var(--font-body);
+  }
 }

@@ -23,7 +23,7 @@ class Trip(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    video_url = db.Column(db.String) # Link to your POV footage
+    video_url = db.Column(db.String) # Cloudinary URL stored here
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -37,11 +37,11 @@ class WayMark(db.Model, SerializerMixin):
     __tablename__ = 'waymarks'
     
     id = db.Column(db.Integer, primary_key=True)
-    label = db.Column(db.String(100)) # e.g., "Scenic Lookout"
-    story = db.Column(db.Text)      # The "narrative" behind this spot
+    label = db.Column(db.String(100)) 
+    story = db.Column(db.Text)      
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    timestamp_in_video = db.Column(db.Integer) # Seconds into the POV clip
+    timestamp_in_video = db.Column(db.Integer) 
     
     trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'), nullable=False)
     

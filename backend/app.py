@@ -18,11 +18,34 @@ def index():
 @app.route('/trips', methods=['GET'])
 def get_trips():
     trips = Trip.query.all()
-    # Returns all trips and their nested waypoints
     return make_response(
         [trip.to_dict() for trip in trips], 
         200
     )
+
+# NEW: Update Trip route to save Cloudinary Video URLs
+@app.route('/trips/<int:id>', methods=['PATCH'])
+def update_trip(id):
+    trip = Trip.query.get(id)
+    if not trip:
+        return make_response({"error": "Trip not found"}, 404)
+    
+    data = request.get_json()
+    
+    # Update video_url if it's in the request
+    if 'video_url' in data:
+        trip.video_url = data['video_url']
+    if 'title' in data:
+        trip.title = data['title']
+    if 'description' in data:
+        trip.description = data['description']
+    
+    try:
+        db.session.commit()
+        return make_response(trip.to_dict(), 200)
+    except Exception as e:
+        db.session.rollback()
+        return make_response({"error": str(e)}, 400)
 
 @app.route('/waypoints', methods=['POST'])
 def create_waypoint():
@@ -43,7 +66,25 @@ def create_waypoint():
         db.session.rollback()
         return make_response({"error": str(e)}, 400)
 
-# NEW: Delete endpoint to remove a specific pin
+@app.route('/waypoints/<int:id>', methods=['PATCH'])
+def update_waypoint(id):
+    waymark = WayMark.query.get(id)
+    if not waymark:
+        return make_response({"error": "WayMark not found"}, 404)
+    
+    data = request.get_json()
+    
+    if 'label' in data: waymark.label = data['label']
+    if 'story' in data: waymark.story = data['story']
+    if 'timestamp_in_video' in data: waymark.timestamp_in_video = data['timestamp_in_video']
+    
+    try:
+        db.session.commit()
+        return make_response(waymark.to_dict(), 200)
+    except Exception as e:
+        db.session.rollback()
+        return make_response({"error": str(e)}, 400)
+
 @app.route('/waypoints/<int:id>', methods=['DELETE'])
 def delete_waypoint(id):
     waymark = WayMark.query.get(id)

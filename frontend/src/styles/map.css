@@ -1,0 +1,37 @@
+/* Leaflet & WayMark map overrides */
+.leaflet-container {
+  background: hsl(220, 20%, 6%) !important;
+  font-family: var(--font-body);
+}
+
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--glass)) !important;
+  border: 1px solid hsl(var(--glass-border)) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-card) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--glass)) !important;
+  border: 1px solid hsl(var(--glass-border)) !important;
+}
+
+.leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.waymark-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-control-attribution {
+  background: hsl(var(--glass) / 0.8) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: hsl(var(--primary)) !important;
+}
