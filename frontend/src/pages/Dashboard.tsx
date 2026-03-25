@@ -1,45 +1,23 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, User, Settings, LogOut, Image, Video, BookOpen, Calendar, Compass, ChevronRight, Edit2, Camera } from "lucide-react";
+import { MapPin, User, Settings, LogOut, Compass, Edit2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-
-interface SavedWayMark {
-  id: string;
-  title: string;
-  story: string;
-  lat: number;
-  lng: number;
-  mediaType: "photo" | "video" | "none";
-  createdAt: string;
-}
 
 interface DashboardProps {
   user: any;
   setUser: (user: any) => void;
 }
 
-const mediaIcons = {
-  photo: Image,
-  video: Video,
-  none: BookOpen,
-};
-
-// We'll keep these as placeholders until you have a 'waymarks' table in your DB
-const mockWaymarks: SavedWayMark[] = [
-  { id: "1", title: "Faroe Islands Switchback", story: "The fog lifted just as we crested the ridge. Below, the road twisted through green valleys into the sea.", lat: 62.1, lng: -6.83, mediaType: "video", createdAt: "Aug 14, 2025" },
-];
-
 const Dashboard = ({ user, setUser }: DashboardProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"waymarks" | "settings">("waymarks");
   const [editingProfile, setEditingProfile] = useState(false);
   
-  // Use the user prop, or fall back to a default object to prevent crashes
+  // Initialize profile with user prop data
   const [profile, setProfile] = useState({
     username: user?.username || "Explorer",
     email: user?.email || "",
@@ -48,7 +26,7 @@ const Dashboard = ({ user, setUser }: DashboardProps) => {
     totalDistance: "0 km"
   });
 
-  // Keep state in sync if user prop changes
+  // Keep state in sync if user logs in/out or refreshes
   useEffect(() => {
     if (user) {
       setProfile(prev => ({
@@ -64,24 +42,24 @@ const Dashboard = ({ user, setUser }: DashboardProps) => {
     localStorage.removeItem("waymark_user");
     // 2. Clear App State
     setUser(null);
-    // 3. Send Home
+    // 3. Feedback and Redirect
     toast.success("Logged out successfully");
     navigate("/login");
   };
 
   const stats = [
-    { label: "WayMarks", value: "0" }, // Will update when you fetch real waymarks
+    { label: "WayMarks", value: "0" }, 
     { label: "Distance", value: profile.totalDistance },
     { label: "Since", value: profile.joinedDate },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Top nav */}
       <div className="h-14 glass-panel border-b border-border flex items-center justify-between px-6 sticky top-0 z-50">
         <Link to="/" className="flex items-center gap-2 group">
           <MapPin className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
-          <span className="font-display text-lg font-semibold text-foreground tracking-tight">
+          <span className="font-display text-lg font-semibold tracking-tight">
             Way<span className="text-primary">Mark</span>
           </span>
         </Link>
@@ -117,14 +95,14 @@ const Dashboard = ({ user, setUser }: DashboardProps) => {
             </div>
 
             <div className="flex-1">
-              <h1 className="font-display text-2xl font-semibold text-foreground">{profile.username}</h1>
+              <h1 className="font-display text-2xl font-semibold">{profile.username}</h1>
               <p className="text-sm text-muted-foreground font-body mt-1">{profile.bio}</p>
             </div>
 
             <div className="flex gap-6 sm:gap-8">
               {stats.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="font-display text-xl font-semibold text-foreground">{stat.value}</div>
+                  <div className="font-display text-xl font-semibold">{stat.value}</div>
                   <div className="text-xs text-muted-foreground font-body uppercase tracking-wider mt-0.5">{stat.label}</div>
                 </div>
               ))}
@@ -156,7 +134,7 @@ const Dashboard = ({ user, setUser }: DashboardProps) => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="text-center py-20">
               <MapPin className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="font-display text-xl text-foreground mb-2">Welcome to your dashboard, {profile.username}</h3>
+              <h3 className="font-display text-xl mb-2">Welcome to your dashboard, {profile.username}</h3>
               <p className="text-muted-foreground font-body mb-6">You haven't dropped any WayMarks on the map yet.</p>
               <Button variant="hero" asChild>
                 <Link to="/explore">Start Exploring</Link>
@@ -169,7 +147,7 @@ const Dashboard = ({ user, setUser }: DashboardProps) => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg">
             <div className="glass-panel rounded-xl border border-border p-6 space-y-5">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-display text-lg font-semibold text-foreground">Profile Settings</h3>
+                <h3 className="font-display text-lg font-semibold">Profile Settings</h3>
                 <Button variant="ghost" size="sm" onClick={() => setEditingProfile(!editingProfile)} className="text-primary">
                   <Edit2 className="h-4 w-4 mr-1" />
                   {editingProfile ? "Cancel" : "Edit"}
@@ -190,7 +168,7 @@ const Dashboard = ({ user, setUser }: DashboardProps) => {
                   <Label className="text-foreground/80">Email</Label>
                   <Input
                     value={profile.email}
-                    disabled={true} // Usually better to keep email locked or handle change with password
+                    disabled={true} 
                     className="h-11 bg-secondary border-border opacity-70"
                   />
                 </div>
