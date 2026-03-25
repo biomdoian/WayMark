@@ -1,7 +1,7 @@
 from flask import Flask, make_response, jsonify, request
 from flask_migrate import Migrate
 from flask_cors import CORS
-from models import db, Trip, WayMark
+from models import db, Trip, WayMark, User
 from config import Config
 
 app = Flask(__name__)
@@ -9,102 +9,115 @@ app.config.from_object(Config)
 
 db.init_app(app)
 migrate = Migrate(app, db)
-CORS(app)
+
+# Configure CORS to allow your React frontend on port 8080
+CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
 
 @app.route('/')
-def index():
-    return {"message": "WayMark API is running!"}
+def home():
+    return jsonify({"message": "WayMark API is running!"})
 
-@app.route('/trips', methods=['GET'])
-def get_trips():
-    trips = Trip.query.all()
-    return make_response(
-        [trip.to_dict() for trip in trips], 
-        200
-    )
+# --- AUTH ROUTES ---
 
-# NEW: Update Trip route to save Cloudinary Video URLs
-@app.route('/trips/<int:id>', methods=['PATCH'])
-def update_trip(id):
-    trip = Trip.query.get(id)
-    if not trip:
-        return make_response({"error": "Trip not found"}, 404)
-    
+@app.route('/signup', methods=['POST'])
+def signup():
     data = request.get_json()
-    
-    # Update video_url if it's in the request
-    if 'video_url' in data:
-        trip.video_url = data['video_url']
-    if 'title' in data:
-        trip.title = data['title']
-    if 'description' in data:
-        trip.description = data['description']
-    
     try:
+        # Check if user already exists
+        if User.query.filter_by(email=data.get('email')).first():
+            return jsonify({"error": "User already exists"}), 400
+            
+        new_user = User(
+            username=data.get('username') or data.get('full_name'),
+            email=data.get('email')
+        )
+        # Assuming your User model handles password hashing
+        new_user.password_hash = data.get('password') 
+        
+        db.session.add(new_user)
         db.session.commit()
-        return make_response(trip.to_dict(), 200)
+        return jsonify({"message": "User created successfully", "user_id": new_user.id}), 201
     except Exception as e:
         db.session.rollback()
-        return make_response({"error": str(e)}, 400)
+        return jsonify({"error": str(e)}), 400
 
-@app.route('/waypoints', methods=['POST'])
-def create_waypoint():
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(email=data.get('email')).first()
+    
+    # Simple check (Update this with your actual password verification logic)
+    if user and user.password_hash == data.get('password'):
+        return jsonify({"message": "Login successful", "user_id": user.id}), 200
+    
+    return jsonify({"error": "Invalid email or password"}), 401
+
+# --- CHRONICLE ROUTES ---
+
+@app.route('/chronicles', methods=['GET'])
+def get_chronicles():
+    try:
+        trips = Trip.query.all()
+        result = []
+        for trip in trips:
+            trip_dict = {
+                "id": str(trip.id),
+                "title": trip.title,
+                "subtitle": trip.subtitle,
+                "body": trip.body,
+                "video_url": trip.video_url,
+                "status": trip.status,
+                "linkedWaymarks": [
+                    {
+                        "id": str(wm.id), 
+                        "title": wm.label, 
+                        "lat": wm.latitude, 
+                        "lng": wm.longitude
+                    } for wm in trip.waymarks
+                ],
+                "author": {"name": "Ian Biomdo", "avatarUrl": ""},
+                "publishedAt": "Mar 25, 2026"
+            }
+            result.append(trip_dict)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/chronicles', methods=['POST'])
+def create_chronicle():
     data = request.get_json()
     try:
-        new_waymark = WayMark(
-            label=data.get('label'),
-            story=data.get('story'),
-            latitude=data.get('latitude'),
-            longitude=data.get('longitude'),
-            timestamp_in_video=data.get('timestamp_in_video'),
+        new_trip = Trip(
+            title=data.get('title'),
+            subtitle=data.get('subtitle'),
+            body=data.get('body'),
+            status=data.get('status', 'published'),
+            user_id=data.get('user_id'),
+            video_url=data.get('video_url')
+        )
+        db.session.add(new_trip)
+        db.session.commit()
+        return jsonify({"message": "Chronicle created successfully"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/waymarks', methods=['POST'])
+def add_waymark():
+    data = request.get_json()
+    try:
+        wm = WayMark(
+            label=data.get('title'),
+            latitude=data.get('lat'),
+            longitude=data.get('lng'),
             trip_id=data.get('trip_id')
         )
-        db.session.add(new_waymark)
+        db.session.add(wm)
         db.session.commit()
-        return make_response(new_waymark.to_dict(), 201)
+        return jsonify({"message": "Waymark added successfully"}), 201
     except Exception as e:
         db.session.rollback()
-        return make_response({"error": str(e)}, 400)
-
-@app.route('/waypoints/<int:id>', methods=['PATCH'])
-def update_waypoint(id):
-    waymark = WayMark.query.get(id)
-    if not waymark:
-        return make_response({"error": "WayMark not found"}, 404)
-    
-    data = request.get_json()
-    
-    if 'label' in data: waymark.label = data['label']
-    if 'story' in data: waymark.story = data['story']
-    if 'timestamp_in_video' in data: waymark.timestamp_in_video = data['timestamp_in_video']
-    
-    try:
-        db.session.commit()
-        return make_response(waymark.to_dict(), 200)
-    except Exception as e:
-        db.session.rollback()
-        return make_response({"error": str(e)}, 400)
-
-@app.route('/waypoints/<int:id>', methods=['DELETE'])
-def delete_waypoint(id):
-    waymark = WayMark.query.get(id)
-    if not waymark:
-        return make_response({"error": "WayMark not found"}, 404)
-    
-    try:
-        db.session.delete(waymark)
-        db.session.commit()
-        return make_response({"message": "WayMark deleted successfully"}, 200)
-    except Exception as e:
-        db.session.rollback()
-        return make_response({"error": str(e)}, 400)
-
-@app.route('/trips/<int:id>', methods=['GET'])
-def get_trip_by_id(id):
-    trip = Trip.query.filter_by(id=id).first()
-    if not trip:
-        return make_response({"error": "Trip not found"}, 404)
-    return make_response(trip.to_dict(), 200)
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
